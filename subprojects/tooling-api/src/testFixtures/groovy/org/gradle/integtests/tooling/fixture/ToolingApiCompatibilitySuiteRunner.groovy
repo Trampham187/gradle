@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
+    static resolver = new ToolingApiDistributionResolver().withDefaultRepository()
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
     }
@@ -33,7 +34,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
     @Override
     protected void createExecutions() {
-        def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
         try {
             if (implicitVersion) {
                 add(new ToolingApiExecution(resolver.resolve(current.version.version), current))
