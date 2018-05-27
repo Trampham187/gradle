@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
-
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.junit.runner.notification.RunNotifier
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
-    private List<ToolingApiDistributionResolver> distributionResolvers = []
-
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
     }
@@ -36,27 +32,20 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
-    void run(RunNotifier notifier) {
-        try {
-            super.run(notifier)
-        }
-        finally {
-            distributionResolvers*.cleanup()
-        }
-    }
-
-    @Override
     protected void createExecutions() {
         def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-        if (implicitVersion) {
-            add(new ToolingApiExecution(resolver.resolve(current.version.version), current))
-        }
-        previous.each {
-            if (it.toolingApiSupported) {
-                add(new ToolingApiExecution(resolver.resolve(current.version.version), it))
-                add(new ToolingApiExecution(resolver.resolve(it.version.version), current))
+        try {
+            if (implicitVersion) {
+                add(new ToolingApiExecution(resolver.resolve(current.version.version), current))
             }
+            previous.each {
+                if (it.toolingApiSupported) {
+                    add(new ToolingApiExecution(resolver.resolve(current.version.version), it))
+                    add(new ToolingApiExecution(resolver.resolve(it.version.version), current))
+                }
+            }
+        } finally {
+            resolver.stop()
         }
-        distributionResolvers.add(resolver)
     }
 }

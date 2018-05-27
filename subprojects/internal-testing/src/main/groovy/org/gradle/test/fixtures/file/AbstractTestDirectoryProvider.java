@@ -64,17 +64,6 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         return cleanup;
     }
 
-    public void cleanup() {
-        if (cleanup && dir != null && dir.exists()) {
-            ConcurrentTestUtil.poll(new Closure(null, null) {
-                @SuppressWarnings("UnusedDeclaration")
-                void doCall() throws IOException {
-                    FileUtils.forceDelete(dir);
-                }
-            });
-        }
-    }
-
     public Statement apply(final Statement base, Description description) {
         init(description.getMethodName(), description.getTestClass().getSimpleName());
 
@@ -96,7 +85,14 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
             base.evaluate();
 
             try {
-                cleanup();
+                if (cleanup && dir != null && dir.exists()) {
+                    ConcurrentTestUtil.poll(new Closure(null, null) {
+                        @SuppressWarnings("UnusedDeclaration")
+                        void doCall() throws IOException {
+                            FileUtils.forceDelete(dir);
+                        }
+                    });
+                }
             } catch (Exception e) {
                 if (suppressCleanupErrors()) {
                     System.err.println(cleanupErrorMessage());
